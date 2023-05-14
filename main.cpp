@@ -1,6 +1,7 @@
 #include<opencv2/core.hpp>
 #include<opencv2/videoio.hpp>
 #include<iostream>
+#include<fstream>
 #include<future>
 #include<unistd.h>
 #include<cppgpio.hpp>
