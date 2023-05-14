@@ -5,37 +5,24 @@
 #include<vector>
 #include"FaceBodyRecognition.hpp"
 
+std::vector<cv::Mat> preProcess(cv::Mat &inputImage, cv::dnn::Net &net){
+	cv::Mat blob;
+	cv::dnn::blobFromImage(inputImage, blob, 1./255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false);
+	net.setInput(blob);
 
+	std::vector<cv::Mat> outputs;
+	net.forward(outputs, net.getUnconnectedOutLayersNames());
 
-bool isPresent(cv::CascadeClassifier Cascade, cv::Mat Frame, cv::Rect &destinationRectangle){
-	cv::Mat temp;
-	std::vector<cv::Rect> faces;
-	cv::cvtColor(Frame, temp, cv::COLOR_RGB2GRAY);
-	Cascade.detectMultiScale(temp, faces, 1.25);
+	return outputs;
+} 
 
-	if(faces.empty()){
-		return false;
+bool isPresent(cv::Mat &inputImage, cv::dnn::Net &neuralNetwork, float &xCoordinates){
+	std::vector<cv::Mat> outputs = preProcess(inputImage, neuralNetwork);
+	
+	std::vector<cv::Mat>::iterator it = outputs.begin();
+
+	for(it; it!=outputs.end(); it++){
+		//Iterate over cv::Mat vector, then unwrap the values...TBD
 	}
-	else{
-		destinationRectangle = faces[0];
-		return true;
-	}
 
-}
-
-bool isPresent(cv::CascadeClassifier Cascade, cv::Mat stream[], cv::Rect &destinationRectangle){
-	int positiveCounter = 0;
-	cv::Rect tempRect;
-	for(int i=0; i<samplesTaken; i++){
-		if(isPresent(Cascade, stream[i], tempRect)){
-			positiveCounter++;
-		}
-	}
-	if(positiveCounter>=minConfirmed()){
-		destinationRectangle = tempRect;
-		return true;
-	}
-	else{
-		return false;
-	}	
 }

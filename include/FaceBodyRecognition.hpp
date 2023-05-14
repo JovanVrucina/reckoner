@@ -1,5 +1,5 @@
-#include<memory>
 #include<cmath>
+#include<opencv2/dnn/dnn.hpp>
 #include<opencv2/core.hpp>
 #include<opencv2/objdetect.hpp>
 #ifndef FACE_AND_BODY_H
@@ -13,7 +13,7 @@ const float NMS_THRESHOLD = 0.45;
 const float CONFIDENCE_THRESHOLD = 0.45;
 /*END NEW CONFIGURATION*/
 
+std::vector<cv::Mat> preProces(cv::Mat &input_image, cv::dnn::Net &net);
 bool isPresent(cv::CascadeClassifier Cascade, cv::Mat Frame, cv::Rect &destinationRectangle);
-bool isPresent(cv::CascadeClassifier Cascade, cv::Mat *stream, cv::Rect &destinationRectangle);
 
 #endif
