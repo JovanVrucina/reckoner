@@ -30,9 +30,7 @@ bool isPresent(cv::Mat &inputImage, cv::dnn::Net &neuralNetwork, float &xCoordin
 				return true;
 			}
 		}
-		//Iterate over cv::Mat vector, then unwrap the values...TBD
 	}
-
 	return false;
 
 }
