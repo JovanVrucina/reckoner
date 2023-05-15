@@ -16,13 +16,23 @@ std::vector<cv::Mat> preProcess(cv::Mat &inputImage, cv::dnn::Net &net){
 	return outputs;
 } 
 
-bool isPresent(cv::Mat &inputImage, cv::dnn::Net &neuralNetwork, float &xCoordinates){
+bool isPresent(cv::Mat &inputImage, cv::dnn::Net &neuralNetwork, float &xCoordinates, int noClasses){
 	std::vector<cv::Mat> outputs = preProcess(inputImage, neuralNetwork);
-	
 	std::vector<cv::Mat>::iterator it = outputs.begin();
 
 	for(it; it!=outputs.end(); it++){
+		float confidence = it->data[4];
+
+		if(confidence>=CONFIDENCE_THRESHOLD){
+			float detectedScore = it->data[5];
+			if(detectedScore>=SCORE_THRESHOLD){
+				xCoordinates = it->data[0];
+				return true;
+			}
+		}
 		//Iterate over cv::Mat vector, then unwrap the values...TBD
 	}
+
+	return false;
 
 }
