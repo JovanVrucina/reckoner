@@ -24,7 +24,6 @@ std::vector<cv::Mat> pre_process(cv::Mat &input_image, cv::dnn::Net &net)
 cv::Mat post_process(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
 {
 // Initialize vectors to hold respective outputs while unwrapping detections.
-    std::vector<int> class_ids;
     std::vector<float> confidences;
     std::vector<cv::Rect> boxes;
 
@@ -52,13 +51,11 @@ cv::Mat post_process(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
             double max_class_score;
             minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
             // Continue if the class score is above the threshold.
-            if (max_class_score > 0.45) 
+            if (max_class_score > 0.45 && class_id.x==0) 
             {
                 // Store class ID and confidence in the pre-defined respective vectors.
     
                 confidences.push_back(confidence);
-                std::cout<<class_id.x<<std::endl;
-                class_ids.push_back(class_id.x);
     
                 // Center.
                 float cx = data[0];
