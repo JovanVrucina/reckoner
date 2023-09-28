@@ -5,9 +5,9 @@
 #include<iostream>
 #include"FaceBodyRecognition.hpp"
 
-std::vector<cv::Mat> pre_process(cv::Mat &input_image, cv::dnn::Net &net)
+std::vector<cv::Mat> pre_processYOLO(cv::Mat &input_image, cv::dnn::Net &net)
 {
-// Convert to blob.
+    // Convert to blob.
     cv::Mat blob;
     cv::dnn::blobFromImage(input_image, blob, 1./255., cv::Size(640.0, 640.0), cv::Scalar(), true, false);
 
@@ -18,10 +18,11 @@ std::vector<cv::Mat> pre_process(cv::Mat &input_image, cv::dnn::Net &net)
     net.forward(outputs, net.getUnconnectedOutLayersNames());
     
     return outputs;
+    
 
 }
 
-cv::Mat post_process(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
+cv::Rect post_processYOLO(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
 {
 // Initialize vectors to hold respective outputs while unwrapping detections.
     std::vector<float> confidences;
@@ -70,6 +71,7 @@ cv::Mat post_process(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
                 int height = int(h * y_factor);
                 // Store good detections in the boxes vector.
                 boxes.push_back(cv::Rect(left, top, width, height));
+                break;
             }
     
         }
@@ -79,21 +81,22 @@ cv::Mat post_process(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
     
     // Perform Non Maximum Suppression and draw predictions.
     std::vector<int> indices;
+    cv::Rect box;
+    box.x = -1;
+    box.y = -1;
+    box.width = 0;
+    box.height = 0;
     cv::dnn::NMSBoxes(boxes, confidences, 0.45, 0.45, indices);
-    for (int i = 0; i < indices.size(); i++) 
-    {
-        int idx = indices[i];
-        cv::Rect box = boxes[idx];
+    if(indices.size()>0){
+        int idx = indices[0];
+        box = boxes[idx];
     
         int left = box.x;
         int top = box.y;
         int width = box.width;
         int height = box.height;
-        // Draw bounding box.
-        rectangle(input_image, cv::Point(left, top), cv::Point(left + width, top + height), cv::Scalar(0, 0, 255));
-
-        
     }
-    return input_image;
+
+    return box;
 
 }

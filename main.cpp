@@ -5,7 +5,7 @@
 #include<fstream>
 #include<future>
 #include<unistd.h>
-//#include<cppgpio.hpp>
+#include<cppgpio.hpp>
 #include"include/FaceBodyRecognition.hpp"
 using namespace std;
 
@@ -16,8 +16,8 @@ int main(int argc, char *argv[]){
 		cout<<"Error!"<<'\n';
 		return -1;
 	}
-	//GPIO::DigitalOut bit1(02);
-	//GPIO::DigitalOut bit2(03);
+	GPIO::DigitalOut bit1(02);
+	GPIO::DigitalOut bit2(03);
 	cv::Mat frame;
 	cv::Rect backRectangle; //rectangle representing the first detected back
 	cv::Rect faceRectangle; //rectangle representing the first detected face
@@ -45,12 +45,27 @@ int main(int argc, char *argv[]){
 	//Start of the main code loop
 	while(true){
 		camera>>frame;
-
-		vector<cv::Mat> outputs = pre_process(frame, bodyNetwork);
-		cv::Mat dispImg = post_process(frame, outputs);
+		vector<cv::Mat> networkOutputsBody = pre_processYOLO(frame, bodyNetwork);
+		cv::Rect bodyRectangle = post_processYOLO(frame, networkOutputsBody);
 		
-		cv::imshow("out", dispImg);
-		cv::waitKey(5);
+		if(bodyRectangle.x >= 0){
+			cout<<bodyRectangle.x+(bodyRectangle.width/2)<<'\n';
+			bit1.off();
+			bit2.off();
+		}else{
+			int midpoint = bodyRectangle.x+(bodyRectangle.width/2)
+
+			if(midpoint>=340){
+				bit1.off();
+				bit2.on();
+			}else if(midpoint <= 300){
+				bit1.on();
+				bit2.off();
+			}else{
+				bit1.on();
+				bit2.on();
+			}
+		}
 
 		// future<bool> imaLedja = async(launch::async, 
 		// 							[&]{return isPresent(BodyCascade,
