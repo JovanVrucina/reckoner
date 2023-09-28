@@ -57,6 +57,7 @@ cv::Mat post_process(cv::Mat &input_image, std::vector<cv::Mat> &outputs)
                 // Store class ID and confidence in the pre-defined respective vectors.
     
                 confidences.push_back(confidence);
+                std::cout<<class_id.x<<std::endl;
                 class_ids.push_back(class_id.x);
     
                 // Center.
