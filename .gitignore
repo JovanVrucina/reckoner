@@ -1,7 +1,8 @@
 /.vscode
 /keyCtl
 /keyCtl.cpp
-/neuralNet
 /performance
 /reckoner
 /samplesPrecision
+test.cpp
+test

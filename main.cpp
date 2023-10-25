@@ -1,9 +1,8 @@
-#include<opencv2/core.hpp>
-#include<opencv2/videoio.hpp>
+#include<opencv2/opencv.hpp>
 #include<iostream>
+#include<fstream>
 #include<future>
 #include<unistd.h>
-#include<cppgpio.hpp>
 #include"include/FaceBodyRecognition.hpp"
 using namespace std;
 
@@ -14,9 +13,10 @@ int main(int argc, char *argv[]){
 		cout<<"Error!"<<'\n';
 		return -1;
 	}
-	GPIO::DigitalOut bit1(02);
-	GPIO::DigitalOut bit2(03);
-	cv::Mat *frame = new cv::Mat[samplesTaken]; //making a dynamic array of samplesTaken frames
+	
+
+
+	cv::Mat frame;
 	cv::Rect backRectangle; //rectangle representing the first detected back
 	cv::Rect faceRectangle; //rectangle representing the first detected face
 	cout<<"done"<<'\n';
@@ -30,51 +30,36 @@ int main(int argc, char *argv[]){
 	}
 	cout<<"done"<<'\n';
 
-	//opening cascadesa and checking if the cascades have been loaded properly
+	//opening neural network and checking if the cascades have been loaded properly
 	cout<<"Loading cascades...";
-	cv::CascadeClassifier FaceCascade("cascades/haarcascade_frontalcatface.xml");
-	cv::CascadeClassifier BodyCascade("cascades/haarcascade_upperbody.xml");
-	if(FaceCascade.empty()||BodyCascade.empty()){
+	cv::dnn::Net faceNetwork = cv::dnn::readNetFromONNX("neuralNet/version-RFB-640.onnx");
+	cv::dnn::Net bodyNetwork = cv::dnn::readNetFromONNX("neuralNet/yolov5n.onnx");
+	if(faceNetwork.empty()||bodyNetwork.empty()){
 		cout<<"Error!"<<'\n';
 		return -1;
 	}
 	cout<<"done"<<'\n'<<"ready."<<'\n';
-
-
 	//Start of the main code loop
 	while(true){
-		for(int i=0; i<samplesTaken; i++){
-			camera>>frame[i]; //snapping the number of frames defined in FaceBodyRecognition.hpp
-			usleep(100000);
+		camera>>frame;
+		vector<cv::Mat> networkOutputsBody = pre_processYOLO(frame, bodyNetwork);
+		cv::Rect bodyRectangle = post_processYOLO(frame, networkOutputsBody);
+		
+	
+		int midpoint = bodyRectangle.x+(bodyRectangle.width/2);
+		
+		cout<<midpoint<<" "<<bodyRectangle.x<<'\n';
+
+		if(bodyRectangle.x != -1){
+			if(midpoint>=420){
+				system("python3 ./left.py");
+			}else if(midpoint <= 256){
+				system("python3 ./right.py");
+			}else{
+				system("python3 ./straight.py");
+			}
+		}else{
+			system("python3 ./stop.py");
 		}
 
-		future<bool> imaLedja = async(launch::async, 
-									[&]{return isPresent(BodyCascade,
-									 frame,
-									  backRectangle);});
-		future<bool> imaLica = async(launch::async, 
-									[&]{return isPresent(FaceCascade,
-									 frame,
-									  faceRectangle);});
-		if(imaLica.get()){
-			cout<<"Face detected"<<'\n';
-			bit1.off();
-			bit2.off();
-			//send message through GPIO pins to stop the motors
-		}
-		else if(imaLedja.get()){
-			cout<<backRectangle.x+(backRectangle.width/2);
-			bit1.on();
-			bit2.on();
-			//send message to follow depending on where is the body
-		}
-		else{
-			cout<<"Nothing detected"<<'\n';
-			bit1.off();
-			bit2.off();
-			//send message to stop through GPIO pins
-		}
-	}
-
-	return 0;
-}
+}}
