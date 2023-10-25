@@ -3,7 +3,6 @@
 #include<fstream>
 #include<future>
 #include<unistd.h>
-#include<cppgpio.hpp>
 #include"include/FaceBodyRecognition.hpp"
 using namespace std;
 
@@ -15,13 +14,7 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 	
-	GPIO::DigitalOut leftGPIO(16);
-	GPIO::DigitalOut rightGPIO(20);
-	GPIO::DigitalOut StandbyGPIO(21);
 
-	leftGPIO.off();
-	rightGPIO.off();
-	StandbyGPIO.off();
 
 	cv::Mat frame;
 	cv::Rect backRectangle; //rectangle representing the first detected back
@@ -37,7 +30,7 @@ int main(int argc, char *argv[]){
 	}
 	cout<<"done"<<'\n';
 
-	//opening cascadesa and checking if the cascades have been loaded properly
+	//opening neural network and checking if the cascades have been loaded properly
 	cout<<"Loading cascades...";
 	cv::dnn::Net faceNetwork = cv::dnn::readNetFromONNX("neuralNet/version-RFB-640.onnx");
 	cv::dnn::Net bodyNetwork = cv::dnn::readNetFromONNX("neuralNet/yolov5n.onnx");
@@ -54,28 +47,19 @@ int main(int argc, char *argv[]){
 		
 	
 		int midpoint = bodyRectangle.x+(bodyRectangle.width/2);
+		
+		cout<<midpoint<<" "<<bodyRectangle.x<<'\n';
 
-		if(midpoint != -1){
-			if(midpoint>=340){
-				rightGPIO.on();
-				leftGPIO.off();
-			}else if(midpoint <= 300){
-				rightGPIO.off();
-				leftGPIO.on();
+		if(bodyRectangle.x != -1){
+			if(midpoint>=420){
+				system("python3 ./left.py");
+			}else if(midpoint <= 256){
+				system("python3 ./right.py");
 			}else{
-				rightGPIO.on();
-				leftGPIO.on();
+				system("python3 ./straight.py");
 			}
+		}else{
+			system("python3 ./stop.py");
 		}
-
-
-		// future<bool> imaLedja = async(launch::async, 
-		// 							[&]{return isPresent(BodyCascade,
-		// 							 frame,
-		// 							  backRectangle);});
-		// future<bool> imaLica = async(launch::async, 
-		// 							[&]{return isPresent(FaceCascade,
-		// 							 frame,
-		// 							  faceRectangle);});
 
 }}
